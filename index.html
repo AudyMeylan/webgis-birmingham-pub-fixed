@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Whispers of Birmingham: An interactive cinematic WebGIS mapping the city's pub culture through spatial storytelling and dark industrial aesthetics.">
+    <title>Whispers of Birmingham — Mapping the City's Pub Culture</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;700;900&family=Oswald:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ======================== HERO SCREEN ======================== -->
+    <div id="hero-screen">
+        <div class="hero-particles" id="hero-particles"></div>
+        <div class="hero-content">
+            <div class="hero-line"></div>
+            <h1 id="hero-quote" class="hero-quote">
+                "Birmingham was built on smoke, steel, and survival."
+            </h1>
+            <div class="hero-line"></div>
+            <p class="hero-subtitle" id="hero-subtitle">Mapping the City's Pub Culture</p>
+            <button id="enter-btn" class="enter-btn">
+                <span class="enter-btn-text">ENTER BIRMINGHAM</span>
+                <span class="enter-btn-glow"></span>
+            </button>
+        </div>
+        <div class="hero-footer">
+            <p>A Spatial Storytelling Experience</p>
+        </div>
+    </div>
+
+    <!-- ======================== MAP CONTAINER ======================== -->
+    <div id="map-container">
+
+        <!-- Fog Overlay -->
+        <div class="fog-overlay" id="fog-overlay">
+            <div class="fog-layer fog-1"></div>
+            <div class="fog-layer fog-2"></div>
+        </div>
+
+        <!-- Film Grain Overlay -->
+        <div class="film-grain" id="film-grain"></div>
+
+        <!-- Dust Particles -->
+        <div class="dust-container" id="dust-container"></div>
+
+        <!-- Map Darken Overlay (for popup) -->
+        <div class="map-darken" id="map-darken"></div>
+
+        <!-- ======================== SIDEBAR ======================== -->
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title-wrap">
+                    <div class="sidebar-icon">🍺</div>
+                    <h2 class="sidebar-title">Whispers of Birmingham</h2>
+                </div>
+                <button id="sidebar-toggle" class="sidebar-toggle">◀</button>
+            </div>
+            <div class="sidebar-content" id="sidebar-content">
+                <div class="sidebar-default" id="sidebar-default">
+                    <p class="sidebar-narrative">
+                        Peta ini menunjukkan persebaran spasial lokasi pub di Kota Birmingham, Inggris.
+                        Terlihat adanya konsentrasi tinggi di pusat kota serta beberapa klaster di wilayah sekitarnya.
+                        Pola ini mencerminkan peran historis pub sebagai pusat interaksi sosial dan aktivitas ekonomi,
+                        khususnya di kawasan yang berkembang pada masa industrialisasi.
+                        Variasi kepadatan ini menggambarkan keterkaitan antara struktur kota, dinamika sosial,
+                        dan jejak sejarah yang masih terasa hingga kini.
+                    </p>
+                </div>
+                <div class="sidebar-pub-info" id="sidebar-pub-info" style="display:none;">
+                    <h3 id="sidebar-pub-name" class="sidebar-pub-name"></h3>
+                    <div class="sidebar-divider"></div>
+                    <p id="sidebar-pub-desc" class="sidebar-pub-desc"></p>
+                    <p id="sidebar-pub-vibe" class="sidebar-pub-vibe"></p>
+                    <div class="sidebar-pub-meta" id="sidebar-pub-meta"></div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="sidebar-section">
+                <h3 class="section-title" id="filter-toggle-btn">⚙ FILTERS <span class="toggle-arrow">▼</span></h3>
+                <div class="filter-panel" id="filter-panel">
+                    <div class="filter-group">
+                        <label class="filter-label">DENSITY</label>
+                        <div class="checkbox-group">
+                            <label class="cb-label"><input type="checkbox" class="filter-category" value="Low" checked>
+                                <span class="cb-mark low"></span> Low</label>
+                            <label class="cb-label"><input type="checkbox" class="filter-category" value="Medium"
+                                    checked> <span class="cb-mark medium"></span> Medium</label>
+                            <label class="cb-label"><input type="checkbox" class="filter-category" value="High" checked>
+                                <span class="cb-mark high"></span> High</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">TYPE</label>
+                        <div class="checkbox-group">
+                            <label class="cb-label"><input type="checkbox" class="filter-type" value="historical"
+                                    checked> <span class="cb-icon">🏛</span> Historical</label>
+                            <label class="cb-label"><input type="checkbox" class="filter-type" value="modern" checked>
+                                <span class="cb-icon">🏢</span> Modern</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">RATING: <span id="rating-display">0 — 5</span></label>
+                        <div class="range-group">
+                            <input type="range" id="rating-min" min="0" max="5" step="0.1" value="0"
+                                class="range-slider">
+                            <input type="range" id="rating-max" min="0" max="5" step="0.1" value="5"
+                                class="range-slider">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Heatmap Toggle -->
+            <div class="sidebar-section">
+                <label class="heatmap-toggle">
+                    <span class="toggle-label">🔥 HEATMAP</span>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="heatmap-toggle">
+                        <span class="toggle-slider"></span>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Stats -->
+            <div class="sidebar-section">
+                <h3 class="section-title">📊 STATISTICS</h3>
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-total">0</div>
+                        <div class="stat-label">Total Pubs</div>
+                    </div>
+                    <div class="stat-card stat-low">
+                        <div class="stat-value" id="stat-low">0</div>
+                        <div class="stat-label">Low</div>
+                    </div>
+                    <div class="stat-card stat-medium">
+                        <div class="stat-value" id="stat-medium">0</div>
+                        <div class="stat-label">Medium</div>
+                    </div>
+                    <div class="stat-card stat-high">
+                        <div class="stat-value" id="stat-high">0</div>
+                        <div class="stat-label">High</div>
+                    </div>
+                    <div class="stat-card stat-wide">
+                        <div class="stat-value" id="stat-rating">0</div>
+                        <div class="stat-label">Avg Rating</div>
+                    </div>
+                    <div class="stat-card stat-wide">
+                        <div class="stat-value" id="stat-district">—</div>
+                        <div class="stat-label">Top District</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="sidebar-section">
+                <h3 class="section-title">🗺 LEGEND</h3>
+                <div class="legend">
+                    <div class="legend-item"><span class="legend-dot" style="background:#8C6A2F;"></span> Low Density
+                    </div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#C9A55C;"></span> Medium Density
+                    </div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#F2E3B3;"></span> High Density
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== MAP ======================== -->
+        <div id="map"></div>
+
+        <!-- ======================== SCROLL LETTER POPUP ======================== -->
+        <div id="scroll-popup-overlay" class="scroll-popup-overlay">
+            <div id="scroll-popup" class="scroll-popup">
+                <button id="scroll-close" class="scroll-close">✕</button>
+                <div class="scroll-inner" id="scroll-inner">
+                    <!-- Vintage Stamp -->
+                    <div class="vintage-stamp" id="popup-stamp">ARCHIVED PUB</div>
+
+                    <!-- Header -->
+                    <div class="scroll-header">
+                        <span class="scroll-icon">🍺</span>
+                        <h2 class="scroll-pub-name" id="popup-name">Pub Name</h2>
+                        <div class="scroll-meta-row">
+                            <span class="scroll-year" id="popup-year">Est. Unknown</span>
+                            <span class="scroll-district" id="popup-district">District</span>
+                        </div>
+                    </div>
+
+                    <div class="scroll-divider"></div>
+
+                    <!-- Image -->
+                    <div class="scroll-image-wrap" id="popup-image-wrap">
+                        <img id="popup-image" class="scroll-image" src="assets/img/pub.jpg" alt="Pub Photo">
+                        <div class="scroll-image-overlay"></div>
+                        <div class="scroll-image-grain"></div>
+                    </div>
+
+                    <div class="scroll-divider"></div>
+
+                    <!-- Historical Dossier -->
+                    <h3 class="dossier-title">— HISTORICAL DOSSIER —</h3>
+                    <div class="dossier-grid">
+                        <div class="dossier-item">
+                            <span class="dossier-label">CATEGORY</span>
+                            <span class="dossier-value" id="popup-category">—</span>
+                        </div>
+                        <div class="dossier-item">
+                            <span class="dossier-label">TYPE</span>
+                            <span class="dossier-value" id="popup-type">—</span>
+                        </div>
+                        <div class="dossier-item">
+                            <span class="dossier-label">RATING</span>
+                            <span class="dossier-value" id="popup-rating">—</span>
+                        </div>
+                        <div class="dossier-item">
+                            <span class="dossier-label">STATUS</span>
+                            <span class="dossier-value" id="popup-status">Active</span>
+                        </div>
+                    </div>
+
+                    <div class="scroll-divider"></div>
+
+                    <!-- Description -->
+                    <div class="scroll-description" id="popup-desc">
+                        Traditional Birmingham pub with deep industrial heritage.
+                    </div>
+
+                    <!-- Vibe Quote -->
+                    <div class="scroll-vibe" id="popup-vibe">
+                        "A surviving social hub from Birmingham's industrial past."
+                    </div>
+
+                    <div class="scroll-divider"></div>
+
+                    <!-- Action Buttons -->
+                    <div class="scroll-actions">
+                        <button class="scroll-action-btn" id="popup-play-ambience">
+                            🎵 Play Atmosphere
+                        </button>
+                    </div>
+
+                    <!-- Bottom Stamp -->
+                    <div class="scroll-bottom-stamp">
+                        BIRMINGHAM SOCIAL NODE — CLASSIFIED
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== LIGHTBOX ======================== -->
+        <div id="lightbox" class="lightbox">
+            <button class="lightbox-close" id="lightbox-close">✕</button>
+            <img id="lightbox-img" class="lightbox-img" src="" alt="Pub Image">
+        </div>
+
+        <!-- ======================== FLOATING BUTTONS ======================== -->
+        <div class="floating-controls">
+            <button id="timeline-btn" class="floating-btn" title="Birmingham Through Time">
+                🕰 Birmingham Through Time
+            </button>
+            <button id="nearest-btn" class="floating-btn" title="Find Nearest Pub">
+                📍 FIND NEAREST PUB
+            </button>
+            <button id="music-btn" class="floating-btn music-btn" title="Toggle Music">
+                🔇 Music
+            </button>
+        </div>
+
+        <!-- ======================== TIMELINE PANEL ======================== -->
+        <div id="timeline-panel" class="timeline-panel">
+            <div class="timeline-header">
+                <h3>🕰 BIRMINGHAM THROUGH TIME</h3>
+                <button id="timeline-close" class="timeline-close-btn">✕</button>
+            </div>
+            <div class="timeline-body">
+                <span class="timeline-year-label">1800</span>
+                <input type="range" id="timeline-slider" class="timeline-slider" min="1800" max="2025" value="2025"
+                    step="1">
+                <span class="timeline-year-label">2025</span>
+            </div>
+            <div class="timeline-indicator">
+                <span>Year: </span><strong id="timeline-year-display">2025</strong>
+                <span class="timeline-atmosphere" id="timeline-atmosphere">All eras visible</span>
+            </div>
+        </div>
+
+        <!-- ======================== NEAREST PUB PANEL ======================== -->
+        <div id="nearest-panel" class="nearest-panel">
+            <div class="nearest-header">
+                <span>📍 Nearest Pub Found</span>
+                <button id="nearest-close" class="nearest-close-btn">✕</button>
+            </div>
+            <div class="nearest-body">
+                <h3 id="nearest-name" class="nearest-name">—</h3>
+                <div class="nearest-meta">
+                    <span id="nearest-district">—</span> · <span id="nearest-category">—</span>
+                </div>
+                <div class="nearest-distance">
+                    <span id="nearest-dist">—</span> · <span id="nearest-walk">—</span>
+                </div>
+                <p class="nearest-vibe" id="nearest-vibe">
+                    "The closest surviving social refuge from Birmingham's industrial nights."
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ======================== SCRIPTS ======================== -->
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet MarkerCluster -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <!-- Leaflet Heat -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <!-- GSAP -->
+    <script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+    <!-- App Script -->
+    <script src="script.js"></script>
+</body>
+
+</html>
